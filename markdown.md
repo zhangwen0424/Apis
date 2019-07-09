@@ -80,7 +80,7 @@
 图片title是图片的标题，当鼠标移到图片上时显示的内容。title可加可不加
 ```
 效果：  
-![vue][https://ss0.baidu.com/73x1bjeh1BF3odCf/it/u=1681391545,4187928589&amp;fm=85 'vue']
+![vue](https://ss0.baidu.com/73x1bjeh1BF3odCf/it/u=1681391545,4187928589&amp;fm=85 'vue')
 
 
 ## 超链接

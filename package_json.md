@@ -1,6 +1,6 @@
 ## package.json
 *Thanks for http://javascript.ruanyifeng.com/nodejs/packagejson.html*  
-*项目根目录中一般有package.json文件，该文件定义了项目所需的各个模块，一级配置信息（名称，版本等），可通过npm install 命令根据配置文件，自动下载所需的模块，也就是配置项目所需的运行和开发环境*
+项目根目录中一般有package.json文件，该文件定义了项目所需的各个模块，一级配置信息（名称，版本等），可通过npm install 命令根据配置文件，自动下载所需的模块，也就是配置项目所需的运行和开发环境
 
 示例：
 ```
