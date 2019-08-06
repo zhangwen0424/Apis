@@ -168,6 +168,8 @@ title可加可不加
 多行代码
 ```
 
+vscode 中.md文件预览快捷键：command+shift+v
+
 
 <!-- ## 流程图
 ```
