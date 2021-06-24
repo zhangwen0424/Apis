@@ -4,6 +4,74 @@
 
 [scss总结](https://github.com/zhangwen0424/sass-test/blob/master/single/test.scss)
 
+```
+* 
+ *  * 编译为css目标文件
+ *
+ *  * 编译方式：
+ *      1.命令行
+ *      2.GUI工具编译
+ *      3.自动化编译, Grunt 和 Gulp
+ *
+ *  * 命令行编译
+ *      sass --watch  single/test.scss:single/nested/test.css --style nested
+ *      sass --watch  single/test.scss:single/expanded/test.css --style expanded
+ *      sass --watch  single/test.scss:single/compact/test.css --style compact
+ *      sass --watch  single/test.scss:single/compressed/test.css --style compressed
+ *
+ *  * 命令行编译
+ *    # 将 Sass 转换为 SCSS
+ *    $ sass-convert style.sass style.scss
+ *
+ *    # 将 SCSS 转换为 Sass
+ *    $ sass-convert single/test.scss single/test.sass
+ *
+ *  * 嵌套方式
+ *      选择器嵌套，属性嵌套，伪类嵌套
+ *
+ *  * 混合宏 vs 继承 vs 占位符
+ *             混合宏                   继承                              占位符
+ *      声明    @mixin                  .class                           %placeholder
+ *      调用    @inclued                @extend                          @extend
+ *      使用    相同代码块使用不同值       无需传不同值，将调用相同基类代码合并   和继承类似，但不调用不产生基类代码，合并相同代码
+ *      不足    多次调用混合宏，代码冗余    即使不调用也会生成基类
+ *  
+ *  * 插值运算 
+ *      用于变量和属性中
+ *
+ *  * 控制命令
+ *      if else
+ *      while
+ *      for (i) form (start) to (end)  
+ *      for (i) form (start) through (end)  
+ *      while
+ *      each in
+ *
+ *  * 函数
+ *      字符串函数
+ *        unquote：去掉引号
+ *        quote：增加引号(处理字符串中不可有空格)
+ *        To-upper-case: 转化为大写字母
+ *        To-lower-case: 转化为小写字母
+ *
+ *
+ *      数字函数
+ *        percentage($value) 将一个不带单位的数转换成百分比值（数字不可有单位）
+ *        round($value) 将数值四舍五入，转换成一个最接近的整数
+ *        ceil($value) 将大于自己的小数转换成下一位整数
+ *        floor($value) 将一个数去除他的小数部分
+ *        abs($value) 返回一个数的绝对值
+ *        min($numbers…) 找出几个数值之间的最小值
+ *        max($numbers…) 找出几个数值之间的最大值
+ *        random() 获取随机
+ *
+ *      introspection 函数
+ *        type-of($value) 返回一个值的类型 number，string，color，bool
+ *        unit($number) 返回一个值的单位 单位
+ *        unitless($number) 判断一个值是否带有带位 true/false
+ *        comparable($number-1, $number-2) 判断两个值是否可以做加、减和合并 true/false
+```
+
 ### 简述一下 Sass 和 Less？
 答：它们都是CSS预处理器，用一种专门的编程语言，进行网页样式设计，然后再编译成正常的CSS文件。 
 SASS是一种CSS的开发工具，提供了许多便利的写法，大大节省了设计者的时间，使得CSS的开发，变得简单和可维护。  

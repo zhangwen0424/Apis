@@ -1,4 +1,4 @@
-## node 版本管理工具
+## node版本管理工具tnvm
 
 ### mac安装
 curl https://raw.githubusercontent.com/aliyun-node/tnvm/master/install.sh | bash
