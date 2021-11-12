@@ -645,9 +645,9 @@
 
 5. 页面使用模块:
 
+```html
   <script data-main="js/main" src="js/libs/require.js"></script>
-
-------------------------------------------------------------------------
+```
 
 6. 使用第三方基于require.js的框架(jquery)
 
@@ -955,3 +955,16 @@
    $('body').css('background', 'red')
    ```
 ​       
+## 模块化方案区别
+
+语法 | commonJS |ES6 | AMD | CMD
+:---|:--|:--|--|--|
+|导出|	module.exports = {} exports = {}|	export default {} export var a = 10|	define(id?: String,dependencies?: String[], factory: Function(Object);|	define(function(require, exports, module) {});|
+|导入|	require(‘module’)|	import module from ‘module’|	require([‘myModule’], function(myModule) {});|	var a = require(‘./a’);require.async(‘./b’, function(b) {});|
+|加载|	动态 – 同步|	静态|	动态 – 异步|	动态 – 同步或异步|
+|导出的对象|	副本|	引用|		
+|多次导出|	同一个对象|			
+|模块作用域|	文件|	文件|	文件|	
+|循环加载时|	加载已执行的部分|	开发者控制(玄学)|		
+|node支持|	是|	否|		是|
+|典型环境|	nodejs|	(babel,vue)|	requireJs|	Sea.js|
