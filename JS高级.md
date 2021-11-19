@@ -352,3 +352,330 @@
 * p.test(): p
 * new test(): 新创建的对象
 * p.call(obj): obj
+
+## 原型与原型链
+
+* 所有函数都有一个特别的属性:
+  * `prototype` : 显式原型属性
+  * 显式原型属性默认指向一个Object空对象(即称为: 原型对象)
+  * 原型对象中有一个属性constructor, 它指向函数对象
+  * **函数的原型对象的构造函数，指向该函数对象** Fun.prototype.constructor===Fun
+  * **实例对象的隐式原型指向其构造函数的显式原型** fun.__proto__ == Fun.prototype
+* 所有实例对象都有一个特别的属性:
+  * `__proto__` : 隐式原型属性
+  * [[prototype]]和__proto__意义相同，均表示对象的内部属性，其值指向对象原型
+* 显式原型与隐式原型的关系
+  * 函数的prototype: 定义函数时被自动赋值, 值默认为{}, 即用为原型对象
+  * 实例对象的__proto__: 在创建实例对象时被自动添加, 并赋值为构造函数的prototype值
+  * 程序员能直接操作显式原型, 但不能直接操作隐式原型(ES6之前)
+  * 原型对象即为当前实例对象的父对象
+* 原型链
+  * 别名: 隐式原型链
+  * 作用: 查找对象的属性(方法)
+  * 访问一个对象的属性时，
+    * 先在自身属性中查找，找到返回
+    * 如果没有, 再沿着__proto__这条链向上查找, 找到返回
+    * 如果最终没找到, 返回undefined
+  * 所有的实例对象都有__proto__属性, 它指向的就是原型对象
+  * 这样通过__proto__属性就形成了一个链的结构---->原型链
+  * 当查找对象内部的属性/方法时, js引擎自动沿着这个原型链查找
+  * 当给对象属性赋值时不会使用原型链, 而只是在当前对象中进行操作
+
+* 原型  
+
+```js
+  // 每个函数都有一个prototype属性, 它默认指向一个Object空对象(即称为: 原型对象)
+  console.log(Date.prototype, typeof Date.prototype)
+  function Fun () {//alt + shift +r(重命名rename)
+
+  }
+  console.log(Fun.prototype)  // 默认指向一个Object空对象(没有我们的属性)
+
+  // 原型对象中有一个属性constructor, 它指向函数对象
+  console.log(Date.prototype.constructor===Date)
+  console.log(Fun.prototype.constructor===Fun) // true， 函数的原型对象的构造函数，指向该函数对象
+
+  //给原型对象添加属性(一般是方法) ===>实例对象可以访问
+  Fun.prototype.test = function () {
+    console.log('test()')
+  }
+  var fun = new Fun()
+  console.log(fun.__proto__ == Fun.prototype); // true，实例对象的隐式原型指向其构造函数的显式原型
+  fun.test()
+```
+
+*  显式原型和隐式原型
+
+```js
+  //定义构造函数
+  function Fn() {   // 内部语句: this.prototype = {}
+
+  }
+  // 1. 每个函数function都有一个prototype，即显式原型属性, 默认指向一个空的Object对象
+  console.log(Fn.prototype)
+  // 2. 每个实例对象都有一个__proto__，可称为隐式原型
+  //创建实例对象（将该实例对象的隐式原型指向该构造函数的显式原型）
+  var fn = new Fn()  // 内部语句: this.__proto__ = Fn.prototype
+  console.log(fn.__proto__)
+  // 3. 对象的隐式原型的值为其对应构造函数的显式原型的值
+  console.log(Fn.prototype===fn.__proto__) // true
+  //给原型添加方法
+  Fn.prototype.test = function () {
+    console.log('test()')
+  }
+  //通过实例调用原型的方法
+  fn.test()
+```
+
+* 原型链
+
+```js
+  // console.log(Object)
+  //console.log(Object.prototype)
+  console.log(Object.prototype.__proto__) //null
+  function Fn() {
+    this.test1 = function () {
+      console.log('test1()')
+    }
+  }
+  console.log(Fn.prototype)// {test2: f(), constructor: f Fn(), [[prototype]]: Object}
+  Fn.prototype.test2 = function () {
+    console.log('test2()')
+  }
+  console.log(Fn.prototype)// {test2: f(), constructor: f Fn(), [[prototype]]: Object}
+
+  var fn = new Fn()
+  console.log(fn.__proto__)// 输出内容和Fn.prototype一样, 因为fn.__proto__ == Fn.prototype
+  console.log(fn)// {test1: f(), [[prototype]] {test2: f(), constructor: f Fn(), [[prototype]]: Object}}
+
+  fn.test1()//test1()
+  fn.test2()//test2()
+  console.log(fn.toString()) //[object Object]
+  console.log(fn.test3) // undefined
+  // fn.test3()
+
+
+  /*
+  1. 函数的显示原型指向的对象默认是空Object实例对象(但Object不满足)
+   */
+  console.log(Fn.prototype instanceof Object) // true
+  console.log(Object.prototype instanceof Object) // false
+  console.log(Function.prototype instanceof Object) // true
+  /*
+  2. 所有函数都是Function的实例(包含Function)
+  */
+  console.log(Function.__proto__===Function.prototype)
+  /*
+  3. Object的原型对象是原型链尽头
+   */
+  console.log(Object.prototype.__proto__) // null
+```
+
+* 原型链和属性问题
+  1. 读取对象的属性值时: 会自动到原型链中查找
+  2. 设置对象的属性值时: 不会查找原型链, 如果当前对象中没有此属性, 直接添加此属性并设置其值
+  3. 方法一般定义在原型中, 属性一般通过构造函数定义在对象本身上
+
+```js
+  function Fn() {
+
+  }
+  Fn.prototype.a = 'xxx'
+
+  // 1. 读取对象的属性值时: 会自动到原型链中查找
+  var fn1 = new Fn()
+  console.log(fn1.a, fn1)// xxx Fn{[[prototype]]{a:xxx, constructor: f Fn(), [[prototype]]: Object}}
+
+  // 2. 设置对象的属性值时: 不会查找原型链, 如果当前对象中没有此属性, 直接添加此属性并设置其值
+  var fn2 = new Fn()
+  fn2.a = 'yyy'
+  console.log(fn1.a, fn2.a, fn2)// xxx yyy Fn{a:yyy, [[prototype]]{a:'xxx', constructor: f Fn() [[prototype]]: Object}}
+
+  function Person(name, age) {
+    this.name = name
+    this.age = age
+  }
+  Person.prototype.setName = function (name) {
+    this.name = name
+  }
+
+  // 3. 方法一般定义在原型中, 属性一般通过构造函数定义在对象本身上
+  var p1 = new Person('Tom', 12)
+  p1.setName('Bob')
+  console.log(p1)//Person {name:Bob,age:12, [[prototype]] {setName: f(name), constructor: f Person(name, age), [[prototype]]: Object }}
+
+  var p2 = new Person('Jack', 12)
+  p2.setName('Cat')
+  console.log(p2)
+  console.log(p1.__proto__===p2.__proto__) // true
+```
+
+* instanceof
+  * instanceof是如何判断的?
+    * 表达式: A instanceof B
+    * 如果B函数的显式原型对象在A对象的原型链上, 返回true, 否则返回false
+  * Function是通过new自己产生的实例
+
+```js
+  /*
+  案例1
+   */
+  function Foo() {  }
+  var f1 = new Foo()
+  console.log(f1 instanceof Foo) // true
+  console.log(f1 instanceof Object) // true
+
+  /*
+  案例2
+   */
+  console.log(Object instanceof Function) // true
+  console.log(Object instanceof Object) // true
+  console.log(Function instanceof Function) // true
+  console.log(Function instanceof Object) // true
+
+  function Foo() {}
+  console.log(Object instanceof  Foo) // false
+```
+
+* 测试题
+
+```js
+  /*
+  测试题1
+   */
+  function A () {
+
+  }
+  A.prototype.n = 1
+  console.log(A.prototype)//{n:1, constructor: f A(), [[prototype]]: Object}
+
+  var b = new A()
+  console.log(b)//{[[prototype]]: {n:1, constructor: f A(), [[prototype]]: Object}}
+
+  A.prototype = {
+    n: 2,
+    m: 3
+  }
+  console.log(A.prototype)//{m:3, n:2, [[prototype]]: Object}
+
+  var c = new A()
+  console.log(c)//{m:3, n:2, [[prototype]]: Object}
+
+  console.log(b.n, b.m, c.n, c.m)//1 undefined 2 3
+
+  /*
+   测试题2
+   */
+  function F (){}
+  Object.prototype.a = function(){
+    console.log('a()')
+  }
+  Function.prototype.b = function(){
+    console.log('b()')
+  }
+  
+  var f = new F()
+  f.a()//a()
+  // f.b()//找不到b
+  F.a()//a()
+  F.b()//b()
+  console.log(f)
+  console.log(F.prototype)
+  console.log(Object.prototype)
+  console.log(Function.prototype)
+```
+
+## 执行上下文与执行上下文栈
+
+* 变量提升与函数提升
+  * 变量提升: 在变量定义语句之前, 就可以访问到这个变量(undefined)
+  * 函数提升: 在函数定义语句之前, 就执行该函数
+  * 先有变量提升, 再有函数提升
+* 理解
+  * 执行上下文: 由js引擎自动创建的对象, 包含对应作用域中的所有变量属性
+  * 执行上下文栈: 用来管理产生的多个执行上下文
+* 分类:
+  * 全局: window
+  * 函数: 对程序员来说是透明的
+* 生命周期
+  * 全局 : 准备执行全局代码前产生, 当页面刷新/关闭页面时死亡
+  * 函数 : 调用函数时产生, 函数执行完时死亡
+* 包含哪些属性:
+  * 全局 : 
+    * 用var定义的全局变量  ==>undefined
+    * 使用function声明的函数   ===>function
+    * this   ===>window
+  * 函数
+    * 用var定义的局部变量  ==>undefined
+    * 使用function声明的函数   ===>function
+    * this   ===> 调用函数的对象, 如果没有指定就是window 
+    * 形参变量   ===>对应实参值
+    * arguments ===>实参列表的伪数组
+* 执行上下文创建和初始化的过程
+  * 全局:
+    * 在全局代码执行前最先创建一个全局执行上下文(window)
+    * 收集一些全局变量, 并初始化
+    * 将这些变量设置为window的属性
+  * 函数:
+    * 在调用函数时, 在执行函数体之前先创建一个函数执行上下文
+    * 收集一些局部变量, 并初始化
+    * 将这些变量设置为执行上下文的属性
+## 作用域与作用域链
+* 理解:
+  * 作用域: 一块代码区域, 在编码时就确定了, 不会再变化
+  * 作用域链: 多个嵌套的作用域形成的由内向外的结构, 用于查找变量
+* 分类:
+  * 全局
+  * 函数
+  * js没有块作用域(在ES6之前)
+* 作用
+  * 作用域: 隔离变量, 可以在不同作用域定义同名的变量不冲突
+  * 作用域链: 查找变量
+* 区别作用域与执行上下文
+  * 作用域: 静态的, 编码时就确定了(不是在运行时), 一旦确定就不会变化了
+  * 执行上下文: 动态的, 执行代码时动态创建, 当执行结束消失
+  * 联系: 执行上下文环境是在对应的作用域中的
+
+## 闭包 
+* 理解:
+  * 当嵌套的内部函数引用了外部函数的变量时就产生了闭包
+  * 通过chrome工具得知: 闭包本质是内部函数中的一个对象, 这个对象中包含引用的变量属性
+* 作用:
+  * 延长局部变量的生命周期
+  * 让函数外部能操作内部的局部变量
+* 写一个闭包程序
+  ```
+  function fn1() {
+    var a = 2;
+    function fn2() {
+      a++;
+      console.log(a);
+    }
+    return fn2;
+  }
+  var f = fn1();
+  f();
+  f();
+  ```
+* 闭包应用:
+  * 模块化: 封装一些数据以及操作数据的函数, 向外暴露一些行为
+  * 循环遍历加监听
+  * JS框架(jQuery)大量使用了闭包
+* 缺点:
+  * 变量占用内存的时间可能会过长
+  * 可能导致内存泄露
+  * 解决:
+    * 及时释放 : f = null; //让内部函数对象成为垃圾对象
+    
+## 内存溢出与内存泄露
+1. 内存溢出
+  * 一种程序运行出现的错误
+  * 当程序运行需要的内存超过了剩余的内存时, 就出抛出内存溢出的错误
+2. 内存泄露
+  * 占用的内存没有及时释放
+  * 内存泄露积累多了就容易导致内存溢出
+  * 常见的内存泄露:
+    * 意外的全局变量
+    * 没有及时清理的计时器或回调函数
+    * 闭包
+    
