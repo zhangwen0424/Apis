@@ -588,39 +588,205 @@
 ## 执行上下文与执行上下文栈
 
 * 变量提升与函数提升
-  * 变量提升: 在变量定义语句之前, 就可以访问到这个变量(undefined)
-  * 函数提升: 在函数定义语句之前, 就执行该函数
+  * 变量提升:
+    * 通过var定义(声明)的变量, 在定义语句之前就可以访问到
+    * 值: undefined
+  * 函数提升:
+    * 通过function声明的函数, 在之前就可以直接调用
+    * 值: 函数定义(对象)
   * 先有变量提升, 再有函数提升
-* 理解
-  * 执行上下文: 由js引擎自动创建的对象, 包含对应作用域中的所有变量属性
-  * 执行上下文栈: 用来管理产生的多个执行上下文
-* 分类:
-  * 全局: window
-  * 函数: 对程序员来说是透明的
-* 生命周期
-  * 全局 : 准备执行全局代码前产生, 当页面刷新/关闭页面时死亡
-  * 函数 : 调用函数时产生, 函数执行完时死亡
-* 包含哪些属性:
-  * 全局 : 
-    * 用var定义的全局变量  ==>undefined
-    * 使用function声明的函数   ===>function
-    * this   ===>window
-  * 函数
-    * 用var定义的局部变量  ==>undefined
-    * 使用function声明的函数   ===>function
-    * this   ===> 调用函数的对象, 如果没有指定就是window 
-    * 形参变量   ===>对应实参值
-    * arguments ===>实参列表的伪数组
-* 执行上下文创建和初始化的过程
-  * 全局:
-    * 在全局代码执行前最先创建一个全局执行上下文(window)
-    * 收集一些全局变量, 并初始化
-    * 将这些变量设置为window的属性
-  * 函数:
-    * 在调用函数时, 在执行函数体之前先创建一个函数执行上下文
-    * 收集一些局部变量, 并初始化
-    * 将这些变量设置为执行上下文的属性
+* 执行上下文
+  * 理解
+    * 执行上下文: 由js引擎自动创建的对象, 包含对应作用域中的所有变量属性
+    * 执行上下文栈: 用来管理产生的多个执行上下文
+  * 分类:
+    * 全局: window
+    * 函数: 对程序员来说是透明的
+  * 生命周期
+    * 全局 : 准备执行全局代码前产生, 当页面刷新/关闭页面时死亡
+    * 函数 : 调用函数时产生, 函数执行完时死亡
+  * 全局执行上下文
+    * 在执行全局代码前将window确定为全局执行上下文
+    * 对全局数据进行预处理
+      * var定义的全局变量==>undefined, 添加为window的属性
+      * function声明的全局函数==>赋值(fun), 添加为window的方法
+      * this==>赋值(window)
+    * 开始执行全局代码
+  * 函数执行上下文
+    * 在调用函数, 准备执行函数体之前, 创建对应的函数执行上下文对象(虚拟的, 存在于栈中)
+    * 对局部数据进行预处理
+      * 形参变量==>赋值(实参)==>添加为执行上下文的属性
+      * arguments==>赋值(实参列表), 添加为执行上下文的属性
+      * var定义的局部变量==>undefined, 添加为执行上下文的属性
+      * function声明的函数 ==>赋值(fun), 添加为执行上下文的方法
+      * this==>赋值(调用函数的对象)
+    * 开始执行函数体代码
+* 执行上下文栈
+  栈：后进先出  
+  队列：先进先出
+  1. 在全局代码执行前, JS引擎就会创建一个栈来存储管理所有的执行上下文对象
+  2. 在全局执行上下文(window)确定后, 将其添加到栈中(压栈)
+  3. 在函数执行上下文创建后, 将其添加到栈中(压栈)
+  4. 在当前函数执行完后,将栈顶的对象移除(出栈)
+  5. 当所有的代码执行完后, 栈中只剩下window
+
+* 变量提升和函数提升
+
+```js
+  var a = 3
+  function fn () {
+    console.log(a)
+    var a = 4
+  }
+  fn()//undefined
+
+  console.log(b) //undefined  变量提升
+  fn2() //可调用  函数提升
+  // fn3() //不能  变量提升,undefined
+
+  var b = 3
+  function fn2() {
+    console.log('fn2()')
+  }
+
+  var fn3 = function () {
+    console.log('fn3()')
+  }
+
+  // * 先有变量提升, 再有函数提升
+  console.log(c)//c()
+  var c = 4;
+  function c(){
+    console.log("c");
+  }
+  console.log(c)//4
+
+  console.log(d)//d()
+  function d(){
+    console.log("d");
+  }
+  var d = 4;
+  console.log(d)//4
+```
+
+* 执行上下文栈
+
+```js
+  var a = 10
+  var bar = function (x) {
+    var b = 5
+    foo(x + b)
+  }
+  var foo = function (y) {
+    var c = 5
+    console.log(a + c + y)
+  }
+  bar(10)//30
+
+/*   foo:
+  y 15
+  c 5
+  a+c+y 10+5+15=30
+
+  bar:
+  x 10
+  b 5
+  x+b 10+5=15
+
+  global:
+  a 10
+  bar function
+  foo function */
+```
+
+1. 依次输出什么?
+2. 整个过程中产生了几个执行上下文?  
+
+```js
+  console.log('gb: '+ i)
+  var i = 1
+  foo(1)
+  function foo(i) {
+    if (i == 4) {
+      return
+    }
+    console.log('fb:' + i)
+    foo(i + 1) //递归调用: 在函数内部调用自己
+    console.log('fe:' + i)
+  }
+  console.log('ge: ' + i)
+/* 
+  foo:
+  i:4
+
+  foo:
+  i:3
+  console.log('fb:' + i)
+  i+1=4
+  console.log('fe:' + i)
+
+  foo:
+  i:2
+  console.log('fb:' + i)
+  i+1=3
+  console.log('fe:' + i)
+
+  foo:
+  i:1
+  console.log('fb:' + i)
+  i+1=2
+  console.log('fe:' + i)
+
+
+  global:
+  i:1
+  foo:function
+  console.log('ge: ' + i)
+ */
+
+/*   1. 依次输出什么?
+    gb: undefined
+    fb: 1
+    fb: 2
+    fb: 3
+    fe: 3
+    fe: 2
+    fe: 1
+    ge: 1
+  2. 整个过程中产生了几个执行上下文?  5 */
+```
+
+```js
+  /*
+   测试题1:  先执行变量提升, 再执行函数提升
+   */
+  function a() {}
+  var a
+  console.log(typeof a) // 'function'
+
+
+  /*
+   测试题2:
+   */
+  if (!(b in window)) {
+    var b = 1
+  }
+  console.log(b) // undefined
+
+  /*
+   测试题3:
+   */
+  var c = 1
+  function c(c) {
+    console.log(c)
+    var c = 3
+  }
+  c(2) // 报错
+
+```
+
 ## 作用域与作用域链
+
 * 理解:
   * 作用域: 一块代码区域, 在编码时就确定了, 不会再变化
   * 作用域链: 多个嵌套的作用域形成的由内向外的结构, 用于查找变量
