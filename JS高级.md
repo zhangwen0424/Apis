@@ -267,6 +267,7 @@
 * 如何定义函数?
   * 函数声明
   * 表达式
+
     ```js
     function fn1 () { //函数声明
       console.log('fn1()')
@@ -286,13 +287,14 @@
     test2.call(obj) // obj.test2()   // 可以让一个函数成为指定任意对象的方法进行调用
     console.log(obj.xxx)
     ```
+
 * 函数的3种不同角色
   * 一般函数 : 直接调用
   * 构造函数 : 通过new调用
   * 对象 : 通过.调用内部的属性/方法
 * 函数中的this
-  * 显式指定谁: obj.xxx()
-  * 通过call/apply指定谁调用: xxx.call(obj)
+  * 显式指定谁: obj.xxx()  obj
+  * 通过call/apply指定谁调用: xxx.call(obj)  obj
   * 不指定谁调用: xxx()  : window
   * 回调函数: 看背后是通过谁来调用的: window/其它
 * 如何调用(执行)函数?
@@ -301,12 +303,15 @@
   * new test(): new调用
   * test.call/apply(obj): 临时让test成为obj的方法进行调用
 * 匿名函数自调用:
+
   ```js
   (function(w, obj){
     //实现代码
   })(window, obj)
   ```
+
   * 专业术语为: IIFE (Immediately Invoked Function Expression) 立即调用函数表达式
+
     ```js
     (function () { //匿名函数自调用
       var a = 3
@@ -329,6 +334,7 @@
 
     $().test() // 1. $是一个函数 2. $执行后返回的是一个对象
     ```
+
 * 回调函数的理解
   * 什么函数才是回调函数?
     * 你定义的
@@ -404,7 +410,7 @@
   fun.test()
 ```
 
-*  显式原型和隐式原型
+* 显式原型和隐式原型
 
 ```js
   //定义构造函数
@@ -801,28 +807,96 @@
   * 作用域: 静态的, 编码时就确定了(不是在运行时), 一旦确定就不会变化了
   * 执行上下文: 动态的, 执行代码时动态创建, 当执行结束消失
   * 联系: 执行上下文环境是在对应的作用域中的
+* 作用域与执行上下文
+  * 区别1
+    * 全局作用域之外，每个函数都会创建自己的作用域，作用域在函数定义时就已经确定了。而不是在函数调用时
+    * 全局执行上下文环境是在全局作用域确定之后, js代码马上执行之前创建
+    * 函数执行上下文是在调用函数时, 函数体代码执行之前创建
+  * 区别2
+    * 作用域是静态的, 只要函数定义好了就一直存在, 且不会再变化
+    * 执行上下文是动态的, 调用函数时创建, 函数调用结束时就会自动释放
+  * 联系
+    * 执行上下文(对象)是从属于所在的作用域
+    * 全局上下文环境==>全局作用域
+    * 函数上下文环境==>对应的函数使用域
+* 作用域链
+  * 理解
+    * 多个上下级关系的作用域形成的链, 它的方向是从下向上的(从内到外)
+    * 查找变量时就是沿着作用域链来查找的
+  * 查找一个变量的查找规则
+    * 在当前作用域下的执行上下文中查找对应的属性, 如果有直接返回, 否则进入2
+    * 在上一级作用域的执行上下文中查找对应的属性, 如果有直接返回, 否则进入3
+    * 再次执行2的相同操作, 直到全局作用域, 如果还找不到就抛出找不到的异常
 
-## 闭包 
+```js
+  var a = 10,
+    b = 20
+  function fn(x) {
+    var a = 100,
+      c = 300;
+    console.log('fn()', a, b, c, x)
+    function bar(x) {
+      var a = 1000,
+        d = 400
+      console.log('bar()', a, b, c, d, x)
+    }
+
+    bar(100)
+    bar(200)
+  }
+  fn(10)
+  /* 
+    fn() 100 20 300 10
+    bar() 1000 20 300 400 100
+    bar() 1000 20 300 400 200
+   */
+```
+
+```js
+  var x = 10;
+  function fn() {
+    console.log(x);
+  }
+  function show(f) {
+    var x = 20;
+    f();
+  }
+  show(fn);//fn在全局环境中，不在show中，访问全局变量
+  // 10
+```
+
+```js
+  var fn = function () {
+    console.log(fn)
+  }
+  fn()//f(){console.log(fn)}
+
+  var obj = {
+    fn2: function () {
+     console.log(fn2)
+     //console.log(this.fn2)
+    }
+  }
+  obj.fn2()
+```
+
+## 闭包
+
 * 理解:
   * 当嵌套的内部函数引用了外部函数的变量时就产生了闭包
   * 通过chrome工具得知: 闭包本质是内部函数中的一个对象, 这个对象中包含引用的变量属性
 * 作用:
-  * 延长局部变量的生命周期
+  * 延长局部变量的生命周期，使用函数内部的变量在函数执行完后, 仍然存活在内存中
   * 让函数外部能操作内部的局部变量
-* 写一个闭包程序
-  ```
-  function fn1() {
-    var a = 2;
-    function fn2() {
-      a++;
-      console.log(a);
-    }
-    return fn2;
-  }
-  var f = fn1();
-  f();
-  f();
-  ```
+  * 问题:
+    1. 函数执行完后, 函数内部声明的局部变量是否还存在?  一般是不存在, 存在于闭中的变量才可能存在
+    2. 在函数外部能直接访问函数内部的局部变量吗? 不能, 但我们可以通过闭包让外部操作它
+* 产生闭包的条件?
+  * 函数嵌套
+  * 内部函数引用了外部函数的数据(变量/函数)
+* 常见的闭包
+  1. 将函数作为另一个函数的返回值
+  2. 将函数作为实参传递给另一个函数调用
 * 闭包应用:
   * 模块化: 封装一些数据以及操作数据的函数, 向外暴露一些行为
   * 循环遍历加监听
@@ -830,18 +904,494 @@
 * 缺点:
   * 变量占用内存的时间可能会过长
   * 可能导致内存泄露
+  * 能不用闭包就不用
   * 解决:
     * 及时释放 : f = null; //让内部函数对象成为垃圾对象
-    
+
+常见的闭包
+
+```js
+// 1. 将函数作为另一个函数的返回值
+function fn1() {
+  //此时闭包就已经产生了(函数提升, 内部函数对象已经创建了)
+  var a = 2
+  function fn2() {
+    a++
+    console.log(a)
+  }
+  return fn2
+}
+var f = fn1()
+f() // 3
+f() // 4
+f = null //闭包死亡(包含闭包的函数对象成为垃圾对象)
+
+// 2. 将函数作为实参传递给另一个函数调用
+function showDelay(msg, time) {
+  setTimeout(function () {
+    alert(msg)
+  }, time)
+}
+showDelay('测试', 2000)
+```
+
+* 闭包的应用 - 定义JS模块  
+  * 具有特定功能的js文件
+  * 将所有的数据和功能都封装在一个函数内部(私有的)
+  * 只向外暴露一个包信n个方法的对象或函数
+  * 模块的使用者, 只需要通过模块暴露的对象调用方法来实现对应的功能
+
+```js
+// module.js
+function myModule() {
+  //私有数据
+  var msg = 'My atguigu'
+  //操作数据的函数
+  function doSomething() {
+    console.log('doSomething() '+msg.toUpperCase())
+  }
+  function doOtherthing () {
+    console.log('doOtherthing() '+msg.toLowerCase())
+  }
+
+  //向外暴露对象(给外部使用的方法)
+  return {
+    doSomething: doSomething,
+    doOtherthing: doOtherthing
+  }
+}
+// page.js
+var module = myModule()
+module.doSomething()
+module.doOtherthing()
+```
+
+```js
+// module.js
+(function () {
+  //私有数据
+  var msg = 'My atguigu'
+  //操作数据的函数
+  function doSomething() {
+    console.log('doSomething() '+msg.toUpperCase())
+  }
+  function doOtherthing () {
+    console.log('doOtherthing() '+msg.toLowerCase())
+  }
+
+  //向外暴露对象(给外部使用的方法)
+  window.myModule2 = {
+    doSomething: doSomething,
+    doOtherthing: doOtherthing
+  }
+})()
+
+// page.js
+myModule2.doSomething()
+myModule2.doOtherthing()
+```
+
+测试  
+
+```js
+  //代码片段一
+  var name = "The Window";
+  var object = {
+    name : "My Object",
+    getNameFunc : function(){
+      return function(){
+        return this.name;
+      };
+    }
+  };
+  alert(object.getNameFunc()());  //  the window
+
+
+  //代码片段二
+  var name2 = "The Window";
+  var object2 = {
+    name2 : "My Object",
+    getNameFunc : function(){
+      var that = this;
+      return function(){
+        return that.name2;
+      };
+    }
+  };
+  alert(object2.getNameFunc()()); //  my object
+```
+
+```js
+  function fun(n,o) {
+    console.log(o)
+    return {
+      fun:function(m){
+        return fun(m,n)
+      }
+    }
+  }
+  var a = fun(0) // n = 0; o = undefined;  console.log(o); a = { fun: function(m){  return fun(m,n) } }
+  a.fun(1) // m =  1; n = 0; => n = 1; o = 0; console.log(o);
+  a.fun(2) // m = 2; n = 0; =>  n = 2; o = 0; console.log(o);
+  a.fun(3) // m = 3; n = 0; =>  n = 3; o = 0; console.log(o);
+  /* 
+    undefined
+    0
+    0
+    0
+   */
+
+  var b = fun(0).fun(1).fun(2).fun(3) //undefined 0 1 2 
+  //  fun(0): n = 0; o = unfined; console.log(o);  return { fun: function(m){  return fun(m,n) } }
+  // fun(1): m = 1; n = 0; console.log(o); return fun(m,n)
+  // fun(2): m = 2; n =; console.log(o);
+
+  var c = fun(0).fun(1)
+  c.fun(2)
+  c.fun(3)
+```
+
+## js中分号问题
+
+```js
+  /* 
+  1. js一条语句的后面可以不加分号
+  2. 是否加分号是编码风格问题, 没有应该不应该，只有你自己喜欢不喜欢
+  3. 在下面2种情况下不加分号会有问题
+    * 小括号开头的前一条语句
+    * 中方括号开头的前一条语句
+  4. 解决办法: 在行首加分号
+  5. 强有力的例子: vue.js库
+  6. 知乎热议: https://www.zhihu.com/question/20298345 
+  */
+  var a = 3
+  ;(function () {
+
+  })()
+  /*
+   错误理解
+   var a = 3(function () {
+
+   })();
+  */
+
+  var b = 4
+  ;[1, 3].forEach(function () {
+
+  })
+  /*
+  错误理解
+   var b = 4[3].forEach(function () {
+
+   })
+   */
+```
+
 ## 内存溢出与内存泄露
-1. 内存溢出
+
+* 内存溢出
   * 一种程序运行出现的错误
   * 当程序运行需要的内存超过了剩余的内存时, 就出抛出内存溢出的错误
-2. 内存泄露
+* 内存泄露
   * 占用的内存没有及时释放
   * 内存泄露积累多了就容易导致内存溢出
   * 常见的内存泄露:
     * 意外的全局变量
     * 没有及时清理的计时器或回调函数
     * 闭包
-    
+
+```js
+  // 1. 内存溢出
+  var obj = {}
+  for (var i = 0; i < 10000; i++) {
+    obj[i] = new Array(10000000)
+    console.log('-----')
+  }
+
+  // 2. 内存泄露
+    // 意外的全局变量
+  function fn() {
+    a = new Array(10000000)
+    console.log(a)
+  }
+  fn()
+
+   // 没有及时清理的计时器或回调函数
+  var intervalId = setInterval(function () { //启动循环定时器后不清理
+    console.log('----')
+  }, 1000)
+
+  // clearInterval(intervalId)
+
+  // 闭包
+  function fn1() {
+    var a = 4
+    function fn2() {
+      console.log(++a)
+    }
+    return fn2
+  }
+  var f = fn1()
+  f()
+
+  // f = null
+```
+
+## 对象的创建模式
+
+* Object构造函数模式
+  * 套路: 先创建空Object对象, 再动态添加属性/方法
+  * 适用场景: 起始时不确定对象内部数据
+  * 问题: 语句太多
+
+  ```js
+    // 先创建空Object对象
+    var p = new Object()
+    p = {} //此时内部数据是不确定的
+    // 再动态添加属性/方法
+    p.name = 'Tom'
+    p.age = 12
+    p.setName = function (name) {
+      this.name = name
+    }
+  ```
+
+* 对象字面量模式
+  * 套路: 使用{}创建对象, 同时指定属性/方法
+  * 适用场景: 起始时对象内部数据是确定的
+  * 问题: 如果创建多个对象, 有重复代码
+
+  ```js
+  var obj = {
+    name : 'Tom',
+    setName : function(name){this.name = name}
+  }
+  ```
+
+* 工厂模式
+  * 套路: 通过工厂函数动态创建对象并返回
+  * 适用场景: 需要创建多个对象
+  * 问题: 对象没有一个具体的类型, 都是Object类型
+
+  ```js
+    function createPerson(name, age) { //返回一个对象的函数===>工厂函数
+      var obj = {
+        name: name,
+        age: age,
+        setName: function (name) {
+          this.name = name
+        }
+      }
+      return obj
+    }
+
+    // 创建2个人
+    var p1 = createPerson('Tom', 12)
+    var p2 = createPerson('Bob', 13)
+  ```
+
+* 自定义构造函数模式
+  * 套路: 自定义构造函数, 通过new创建对象
+  * 适用场景: 需要创建多个类型确定的对象
+  * 问题: 每个对象都有相同的数据, 浪费内存
+
+  ```js
+  function Person(name, age) {
+    this.name = name;
+    this.age = age;
+    this.setName = function(name){this.name=name;};
+  }
+  new Person('tom', 12);
+  ```
+
+* 构造函数+原型的组合模式
+  * 套路: 自定义构造函数, 属性在函数中初始化, 方法添加到原型上
+  * 适用场景: 需要创建多个类型确定的对象
+
+  ```js
+  function Person(name, age) {
+    this.name = name;
+    this.age = age;
+  }
+  Person.prototype.setName = function(name){this.name=name;};
+  new Person('tom', 12);
+  ```
+
+### new一个对象背后做了些什么?
+
+* 创建一个空对象
+* 给对象设置__proto__, 值为构造函数对象的prototype属性值   this.__proto__ = Fn.prototype
+* 执行构造函数体(给对象添加属性/方法)
+
+## 继承模式
+
+* 原型链继承 : 得到方法
+  1. 套路
+      1. 定义父类型构造函数
+      2. 给父类型的原型添加方法
+      3. 定义子类型的构造函数
+      4. 创建父类型的对象赋值给子类型的原型
+      5. 将子类型原型的构造属性设置为子类型
+      6. 给子类型原型添加方法
+      7. 创建子类型的对象: 可以调用父类型的方法
+  2. 关键
+      1. 子类型的原型为父类型的一个实例对象
+
+  ```js
+    function Parent(){}
+    Parent.prototype.test = function(){};
+    function Child(){}
+    Child.prototype = new Parent(); // 子类型的原型指向父类型实例
+    Child.prototype.constructor = Child //让子类型的原型的constructor指向子类型
+    var child = new Child(); //有test()
+  ```
+
+* 借用构造函数 : 得到属性
+  1. 套路:
+      1. 定义父类型构造函数
+      2. 定义子类型构造函数
+      3. 在子类型构造函数中调用父类型构造
+  2. 关键:
+      1. 在子类型构造函数中通用call()调用父类型构造函数
+
+```js
+  function Parent(xxx){
+    this.xxx = xxx
+  }
+  Parent.prototype.test = function(){};
+  function Child(xxx,yyy){
+      Parent.call(this, xxx);//借用构造函数   this.Parent(xxx)
+  }
+  var child = new Child('a', 'b');  //child.xxx为'a', 但child没有test()
+```
+
+* 组合继承
+  1. 利用原型链实现对父类型对象的方法继承
+  2. 利用super()借用父类型构建函数初始化相同属性
+
+```js
+function Parent(xxx){
+  this.xxx = xxx
+}
+Parent.prototype.test = function(){};
+function Child(xxx,yyy){
+    Parent.call(this, xxx);//借用构造函数   this.Parent(xxx)
+}
+Child.prototype = new Parent(); //得到test()
+var child = new Child(); //child.xxx为'a', 也有test()
+```
+
+## 线程与进程
+
+1. 进程：程序的一次执行, 它占有一片独有的内存空间
+2. 线程： CPU的基本调度单位, 是程序执行的一个完整流程
+3. 进程与线程
+    * 一个进程中一般至少有一个运行的线程: 主线程
+    * 一个进程中也可以同时运行多个线程, 我们会说程序是多线程运行的
+    * 一个进程内的数据可以供其中的多个线程直接共享
+    * 多个进程之间的数据是不能直接共享的
+4. 浏览器运行是单进程还是多进程?
+    * 有的是单进程
+      * firefox
+      * 老版IE
+    * 有的是多进程
+      * chrome
+      * 新版IE
+5. 如何查看浏览器是否是多进程运行的呢?
+    * 任务管理器==>进程
+6. 浏览器运行是单线程还是多线程?
+    * 都是多线程运行的
+
+## 浏览器内核模块组成
+
+* 主线程
+  * js引擎模块 : 负责js程序的编译与运行
+  * html,css文档解析模块 : 负责页面文本的解析
+  * DOM/CSS模块 : 负责dom/css在内存中的相关处理 
+  * 布局和渲染模块 : 负责页面的布局和效果的绘制(内存中的对象)
+* 分线程
+  * 定时器模块 : 负责定时器的管理
+  * DOM事件模块 : 负责事件的管理
+  * 网络请求模块 : 负责Ajax请求
+
+## 定时器问题
+
+* 定时器并不真正完全定时
+* 如果在主线程执行了一个长时间的操作, 可能导致延时才处理
+
+## js线程
+
+* js是单线程执行的(回调函数也是在主线程)
+* H5提出了实现多线程的方案: Web Workers
+* 只能是主线程更新界面
+
+1. 如何证明js执行是单线程的?
+    * setTimeout()的回调函数是在主线程执行的
+    * 定时器回调函数只有在运行栈中的代码全部执行完后才有可能执行
+2. 为什么js要用单线程模式, 而不用多线程模式?
+    * JavaScript的单线程，与它的用途有关。
+    * 作为浏览器脚本语言，JavaScript的主要用途是与用户互动，以及操作DOM。
+    * 这决定了它只能是单线程，否则会带来很复杂的同步问题
+3. 代码的分类:
+    * 初始化代码
+    * 回调代码
+4. js引擎执行代码的基本流程
+    * 先执行初始化代码: 包含一些特别的代码   回调函数(异步执行)
+      * 设置定时器
+      * 绑定事件监听
+      * 发送ajax请求
+    * 后面在某个时刻才会执行回调代码
+
+```js
+  setTimeout(function () {
+    console.log('timeout 2222')
+    alert('22222222')
+  }, 2000)
+  setTimeout(function () {
+    console.log('timeout 1111')
+    alert('1111111')
+  }, 1000)
+  setTimeout(function () {
+    console.log('timeout() 00000')
+  }, 0)
+  function fn() {
+    console.log('fn()')
+  }
+  fn()
+
+  console.log('alert()之前')
+  alert('------') //暂停当前主线程的执行, 同时暂停计时, 点击确定后, 恢复程序执行和计时
+  console.log('alert()之后')
+```
+
+## 事件处理机制(图)
+
+* 代码分类
+  * 初始化执行代码: 包含绑定dom事件监听, 设置定时器, 发送ajax请求的代码
+  * 回调执行代码: 处理回调逻辑
+* js引擎执行代码的基本流程:
+  * 初始化代码===>回调代码
+* 模型的2个重要组成部分:
+  * 事件管理模块
+  * 回调队列
+* 模型的运转流程
+  * 执行初始化代码, 将事件回调函数交给对应模块管理
+  * 当事件发生时, 管理模块会将回调函数及其数据添加到回调列队中
+  * 只有当初始化代码执行完后(可能要一定时间), 才会遍历读取回调队列中的回调函数执行
+
+
+## H5 Web Workers
+* 可以让js在分线程执行
+* Worker
+  ```
+  var worker = new Worker('worker.js');
+  worker.onMessage = function(event){event.data} : 用来接收另一个线程发送过来的数据的回调
+  worker.postMessage(data1) : 向另一个线程发送数据
+  ```
+* 问题:
+  * worker内代码不能操作DOM更新UI
+  * 不是每个浏览器都支持这个新特性
+  * 不能跨域加载JS
+
+* svn版本控制
+* svn server
