@@ -21,3 +21,13 @@ cd my-project     //进入项目文件中
 git remote add origin [url] //当前项目关联到github项目目录
 
 
+
+## 本地已经存在的项目推送到github上
+
+进入本地项目目录
+git init  
+git add .  
+git commit -m '备注'  
+git remote add origin 仓库地址
+git push
+
