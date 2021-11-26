@@ -1372,26 +1372,40 @@ var child = new Child(); //child.xxx为'a', 也有test()
 * js引擎执行代码的基本流程:
   * 初始化代码===>回调代码
 * 模型的2个重要组成部分:
-  * 事件管理模块
+  * 事件(定时器/DOM事件/Ajax)管理模块
   * 回调队列
 * 模型的运转流程
   * 执行初始化代码, 将事件回调函数交给对应模块管理
   * 当事件发生时, 管理模块会将回调函数及其数据添加到回调列队中
   * 只有当初始化代码执行完后(可能要一定时间), 才会遍历读取回调队列中的回调函数执行
 
-
 ## H5 Web Workers
-* 可以让js在分线程执行
-* Worker
-  ```
-  var worker = new Worker('worker.js');
-  worker.onMessage = function(event){event.data} : 用来接收另一个线程发送过来的数据的回调
-  worker.postMessage(data1) : 向另一个线程发送数据
-  ```
-* 问题:
-  * worker内代码不能操作DOM更新UI
-  * 不是每个浏览器都支持这个新特性
-  * 不能跨域加载JS
+
+1. H5规范提供了js分线程的实现, 取名为: Web Workers
+2. 相关API
+    * Worker: 构造函数, 加载分线程执行的js文件
+    * Worker.prototype.onmessage: 用于接收另一个线程的回调函数
+    * Worker.prototype.postMessage: 向另一个线程发送消息
+
+    ```js
+      var worker = new Worker('worker.js');
+      worker.onMessage = function(event){event.data} // 用来接收另一个线程发送过来的数据的回调
+      worker.postMessage(data1) // 向另一个线程发送数据
+      worker.terminate();// 关闭主线程
+      self.close();// 关闭Worker 线程
+    ```
+
+3. 不足
+    * worker内代码不能操作DOM(更新UI)
+    * 不能跨域加载JS
+    * 不是每个浏览器都支持这个新特性
+
+4. 使用注意事项
+    * （1）同源限制：分配给 Worker 线程运行的脚本文件，必须与主线程的脚本文件同源。
+    * （2）DOM 限制：Worker 线程所在的全局对象，与主线程不一样，无法读取主线程所在网页的 DOM 对象，也无法使用document、window、parent这些对象。但是，Worker 线程可以navigator对象和location对象。
+    * （3）通信联系：Worker 线程和主线程不在同一个上下文环境，它们不能直接通信，必须通过消息完成。
+    * （4）脚本限制：Worker 线程不能执行alert()方法和confirm()方法，但可以使用 XMLHttpRequest 对象发出 AJAX 请求。
+    * （5）文件限制：Worker 线程无法读取本地文件，即不能打开本机的文件系统（file://），它所加载的脚本，必须来自网络
 
 * svn版本控制
 * svn server
